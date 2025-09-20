@@ -28,7 +28,7 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация
 BOT_TOKEN = os.getenv('TELEGRAM_BOT_TOKEN', 'YOUR_BOT_TOKEN_HERE')
-WEB_APP_URL = os.getenv('WEB_APP_URL', 'https://your-domain.com/2fa')
+WEB_APP_URL = os.getenv('WEB_APP_URL', 'https://twofa-web-app.onrender.com')
 DEMO_KEY = "JBSWY3DPEHPK3PXP"  # Демонстрационный ключ с BrowserScan
 
 # Хранилище пользовательских ключей (в продакшене использовать базу данных)
