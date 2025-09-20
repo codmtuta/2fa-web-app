@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2FA Authenticator - Онлайн генератор кодов</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1><i class="fas fa-shield-alt"></i> 2FA Authenticator</h1>
+            <p class="subtitle">Онлайн генератор кодов двухфакторной аутентификации</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Форма ввода ключа -->
+            <div class="input-section">
+                <div class="input-group">
+                    <label for="secret-key">
+                        <i class="fas fa-key"></i> Секретный ключ (Base32)
+                    </label>
+                    <div class="input-container">
+                        <input type="text" id="secret-key" placeholder="Введите секретный ключ или используйте демо-ключ" 
+                               value="JBSWY3DPEHPK3PXP">
+                        <button type="button" id="demo-key-btn" class="demo-btn">
+                            <i class="fas fa-magic"></i> Демо
+                        </button>
+                        <button type="button" id="generate-key-btn" class="generate-btn">
+                            <i class="fas fa-plus"></i> Новый
+                        </button>
+                    </div>
+                </div>
+
+                <div class="options-group">
+                    <div class="option">
+                        <label for="digits">Цифр в коде:</label>
+                        <select id="digits">
+                            <option value="6" selected>6</option>
+                            <option value="8">8</option>
+                        </select>
+                    </div>
+                    <div class="option">
+                        <label for="period">Период (сек):</label>
+                        <select id="period">
+                            <option value="30" selected>30</option>
+                            <option value="60">60</option>
+                        </select>
+                    </div>
+                </div>
+
+                <button type="button" id="generate-code-btn" class="primary-btn">
+                    <i class="fas fa-sync-alt"></i> Генерировать код
+                </button>
+            </div>
+
+            <!-- Результат -->
+            <div class="result-section" id="result-section" style="display: none;">
+                <div class="code-display">
+                    <div class="code-container">
+                        <span class="code-label">Текущий код:</span>
+                        <span class="code-value" id="current-code">------</span>
+                    </div>
+                    <div class="timer-container">
+                        <div class="timer-circle">
+                            <svg class="timer-svg" viewBox="0 0 100 100">
+                                <circle class="timer-bg" cx="50" cy="50" r="45"></circle>
+                                <circle class="timer-progress" cx="50" cy="50" r="45" id="timer-circle"></circle>
+                            </svg>
+                            <div class="timer-text" id="timer-text">30</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-grid">
+                    <div class="info-item">
+                        <i class="fas fa-clock"></i>
+                        <span class="info-label">Оставшееся время:</span>
+                        <span class="info-value" id="remaining-time">30 сек</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-hashtag"></i>
+                        <span class="info-label">Количество цифр:</span>
+                        <span class="info-value" id="code-digits">6</span>
+                    </div>
+                    <div class="info-item">
+                        <i class="fas fa-stopwatch"></i>
+                        <span class="info-label">Период:</span>
+                        <span class="info-value" id="code-period">30 сек</span>
+                    </div>
+                </div>
+
+                <div class="actions">
+                    <button type="button" id="copy-code-btn" class="action-btn">
+                        <i class="fas fa-copy"></i> Копировать код
+                    </button>
+                    <button type="button" id="qr-code-btn" class="action-btn">
+                        <i class="fas fa-qrcode"></i> QR код
+                    </button>
+                    <button type="button" id="verify-code-btn" class="action-btn">
+                        <i class="fas fa-check"></i> Проверить код
+                    </button>
+                </div>
+            </div>
+
+            <!-- Множественные ключи -->
+            <div class="multiple-keys-section">
+                <h3><i class="fas fa-list"></i> Множественные ключи</h3>
+                <div class="keys-input">
+                    <textarea id="multiple-keys" placeholder="Введите несколько ключей через запятую или с новой строки"></textarea>
+                    <button type="button" id="process-multiple-btn" class="secondary-btn">
+                        <i class="fas fa-cogs"></i> Обработать все
+                    </button>
+                </div>
+                <div class="multiple-results" id="multiple-results"></div>
+            </div>
+
+            <!-- QR код модальное окно -->
+            <div class="modal" id="qr-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-qrcode"></i> QR код</h3>
+                        <button type="button" class="close-btn" id="close-qr-modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="qr-container">
+                            <div id="qr-code"></div>
+                            <div class="qr-info">
+                                <p>Отсканируйте QR код в приложении аутентификатора</p>
+                                <div class="qr-url">
+                                    <label>URL для QR кода:</label>
+                                    <input type="text" id="qr-url" readonly>
+                                    <button type="button" id="copy-qr-url-btn" class="copy-btn">
+                                        <i class="fas fa-copy"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Проверка кода модальное окно -->
+            <div class="modal" id="verify-modal">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h3><i class="fas fa-check"></i> Проверка кода</h3>
+                        <button type="button" class="close-btn" id="close-verify-modal">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="verify-container">
+                            <div class="input-group">
+                                <label for="verify-code">Введите код для проверки:</label>
+                                <input type="text" id="verify-code" placeholder="000000" maxlength="8">
+                            </div>
+                            <button type="button" id="check-code-btn" class="primary-btn">
+                                <i class="fas fa-search"></i> Проверить
+                            </button>
+                            <div class="verify-result" id="verify-result"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <footer class="footer">
+            <div class="footer-content">
+                <p><i class="fas fa-info-circle"></i> Этот сервис не хранит ваши данные. Все вычисления происходят локально.</p>
+                <p><i class="fas fa-shield-alt"></i> Используйте только доверенные ключи для защиты ваших аккаунтов.</p>
+            </div>
+        </footer>
+    </div>
+
+    <!-- Уведомления -->
+    <div class="notification" id="notification">
+        <div class="notification-content">
+            <i class="fas fa-check-circle"></i>
+            <span class="notification-text"></span>
+        </div>
+    </div>
+
+    <!-- Подключение библиотек -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcode/1.5.3/qrcode.min.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

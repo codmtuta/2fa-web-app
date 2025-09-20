@@ -1,0 +1,28 @@
+# Зависимости для 2FA Telegram Bot и Web App
+
+# Telegram Bot
+python-telegram-bot==20.7
+
+# Web Framework
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# TOTP/HOTP (уже реализовано в totp_generator.py)
+# Используем встроенные библиотеки Python:
+# - hmac
+# - hashlib
+# - base64
+# - time
+# - secrets
+# - struct
+# - urllib.parse
+
+# Дополнительные зависимости для продакшена
+gunicorn==21.2.0  # WSGI сервер для продакшена
+python-dotenv==1.0.0  # Для переменных окружения
+
+# Опциональные зависимости для расширенной функциональности
+# redis==5.0.1  # Для хранения сессий в продакшене
+# psycopg2-binary==2.9.9  # Для PostgreSQL
+# mysql-connector-python==8.2.0  # Для MySQL
+
