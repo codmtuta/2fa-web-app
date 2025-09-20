@@ -1162,20 +1162,44 @@
         function handleTelegramData() {
             const urlParams = new URLSearchParams(window.location.search);
             const tgWebAppData = urlParams.get('tgWebAppData');
+            const tgWebAppVersion = urlParams.get('tgWebAppVersion');
+            const tgWebAppPlatform = urlParams.get('tgWebAppPlatform');
+            const tgWebAppThemeParams = urlParams.get('tgWebAppThemeParams');
             
-            if (tgWebAppData) {
-                // Очищаем URL от данных Telegram
+            if (tgWebAppData || tgWebAppVersion || tgWebAppPlatform || tgWebAppThemeParams) {
+                // Очищаем URL от всех данных Telegram
                 const url = new URL(window.location);
                 url.searchParams.delete('tgWebAppData');
+                url.searchParams.delete('tgWebAppVersion');
+                url.searchParams.delete('tgWebAppPlatform');
+                url.searchParams.delete('tgWebAppThemeParams');
                 window.history.replaceState({}, document.title, url);
+                
+                // Очищаем поле ввода если оно случайно заполнилось
+                const secretKeyInput = document.getElementById('secretKey');
+                if (secretKeyInput && secretKeyInput.value.includes('tgWebAppData')) {
+                    secretKeyInput.value = '';
+                }
                 
                 // Можно использовать данные Telegram для авторизации
                 console.log('Telegram Web App Data:', tgWebAppData);
+                console.log('Telegram Web App Version:', tgWebAppVersion);
+                console.log('Telegram Web App Platform:', tgWebAppPlatform);
             }
         }
         
         // Вызываем обработку при загрузке
-        handleTelegramData();
+        document.addEventListener('DOMContentLoaded', function() {
+            handleTelegramData();
+            
+            // Дополнительная проверка через небольшую задержку
+            setTimeout(function() {
+                const secretKeyInput = document.getElementById('secretKey');
+                if (secretKeyInput && secretKeyInput.value.includes('tgWebAppData')) {
+                    secretKeyInput.value = '';
+                }
+            }, 100);
+        });
         
         let sessionId = 'web_' + Date.now();
         let autoRefreshInterval = null;
