@@ -1158,6 +1158,25 @@
     
     <script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
     <script>
+        // Обработка данных от Telegram Web App
+        function handleTelegramData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const tgWebAppData = urlParams.get('tgWebAppData');
+            
+            if (tgWebAppData) {
+                // Очищаем URL от данных Telegram
+                const url = new URL(window.location);
+                url.searchParams.delete('tgWebAppData');
+                window.history.replaceState({}, document.title, url);
+                
+                // Можно использовать данные Telegram для авторизации
+                console.log('Telegram Web App Data:', tgWebAppData);
+            }
+        }
+        
+        // Вызываем обработку при загрузке
+        handleTelegramData();
+        
         let sessionId = 'web_' + Date.now();
         let autoRefreshInterval = null;
         let keysAutoRefreshInterval = null;
