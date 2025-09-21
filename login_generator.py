@@ -1,106 +1,115 @@
-import json
 import random
-import os
+import string
 
 class LoginGenerator:
-    def __init__(self, json_file_path="logins_100000.json"):
+    def __init__(self):
         """
         Инициализация генератора логинов
+        """
+        # Базовые слова для генерации логинов
+        self.base_words = [
+            'user', 'admin', 'player', 'gamer', 'hacker', 'coder', 'dev', 'test',
+            'demo', 'guest', 'member', 'vip', 'pro', 'master', 'king', 'queen',
+            'ninja', 'warrior', 'hero', 'legend', 'star', 'moon', 'sun', 'fire',
+            'ice', 'storm', 'thunder', 'lightning', 'shadow', 'ghost', 'spirit',
+            'angel', 'demon', 'dragon', 'phoenix', 'wolf', 'tiger', 'lion', 'bear',
+            'eagle', 'falcon', 'hawk', 'raven', 'fox', 'cat', 'dog', 'rabbit',
+            'mouse', 'snake', 'spider', 'bee', 'butterfly', 'fish', 'shark',
+            'whale', 'dolphin', 'octopus', 'crab', 'lobster', 'turtle', 'frog',
+            'lizard', 'gecko', 'chameleon', 'iguana', 'python', 'cobra', 'viper',
+            'rattlesnake', 'boa', 'anaconda', 'python', 'java', 'script', 'html',
+            'css', 'react', 'vue', 'angular', 'node', 'express', 'django', 'flask',
+            'fastapi', 'spring', 'laravel', 'symfony', 'rails', 'sinatra', 'gin',
+            'echo', 'fiber', 'chi', 'gorilla', 'mux', 'iris', 'beego', 'revel'
+        ]
+    
+    def generate_login(self, prefix="", length=8):
+        """
+        Генерирует случайный логин
         
         Args:
-            json_file_path (str): Путь к файлу с логинами
-        """
-        self.json_file_path = json_file_path
-        self.logins = []
-        self.load_logins()
-    
-    def load_logins(self):
-        """Загружает логины из JSON файла"""
-        try:
-            with open(self.json_file_path, 'r', encoding='utf-8') as file:
-                self.logins = json.load(file)
-            print(f"Загружено {len(self.logins)} логинов из файла {self.json_file_path}")
-        except FileNotFoundError:
-            print(f"Файл {self.json_file_path} не найден!")
-            self.logins = []
-        except json.JSONDecodeError:
-            print(f"Ошибка при чтении JSON файла {self.json_file_path}")
-            self.logins = []
-    
-    def generate_login(self):
-        """
-        Генерирует логин с добавлением случайных цифр в начале и конце
+            prefix (str): Префикс для логина (необязательно)
+            length (int): Длина логина (по умолчанию 8)
         
         Returns:
-            str: Сгенерированный логин или None если нет доступных логинов
+            str: Сгенерированный логин
         """
-        if not self.logins:
-            print("Нет доступных логинов для генерации")
+        try:
+            # Выбираем случайное базовое слово
+            base_word = random.choice(self.base_words)
+            
+            # Определяем длину случайной части
+            remaining_length = max(3, length - len(prefix))
+            
+            # Генерируем случайную часть
+            random_part = ''.join(random.choices(string.ascii_lowercase + string.digits, k=remaining_length))
+            
+            # Собираем логин
+            if prefix:
+                login = prefix + random_part
+            else:
+                # Если нет префикса, используем базовое слово + случайную часть
+                word_length = min(len(base_word), remaining_length - 2)
+                random_length = remaining_length - word_length
+                
+                login = base_word[:word_length] + ''.join(random.choices(string.digits, k=random_length))
+            
+            # Обрезаем до нужной длины
+            login = login[:length]
+            
+            return login
+            
+        except Exception as e:
+            print(f"Ошибка при генерации логина: {e}")
             return None
-        
-        # Выбираем случайный логин из списка
-        base_login = random.choice(self.logins)
-        
-        # Генерируем случайное количество цифр для начала (1-2)
-        prefix_digits = random.randint(1, 2)
-        prefix = ''.join([str(random.randint(0, 9)) for _ in range(prefix_digits)])
-        
-        # Генерируем случайное количество цифр для конца (1-2)
-        suffix_digits = random.randint(1, 2)
-        suffix = ''.join([str(random.randint(0, 9)) for _ in range(suffix_digits)])
-        
-        # Собираем финальный логин
-        generated_login = prefix + base_login + suffix
-        
-        return generated_login
     
-    def generate_multiple_logins(self, count=1):
+    def generate_multiple_logins(self, count=1, prefix="", length=8):
         """
         Генерирует несколько логинов
         
         Args:
             count (int): Количество логинов для генерации
+            prefix (str): Префикс для логинов (необязательно)
+            length (int): Длина логинов (по умолчанию 8)
             
         Returns:
             list: Список сгенерированных логинов
         """
         generated_logins = []
         for _ in range(count):
-            login = self.generate_login()
+            login = self.generate_login(prefix, length)
             if login:
                 generated_logins.append(login)
         return generated_logins
     
     def get_stats(self):
         """
-        Возвращает статистику по загруженным логинам
+        Возвращает статистику по генератору логинов
         
         Returns:
             dict: Словарь со статистикой
         """
-        if not self.logins:
-            return {"total_logins": 0, "status": "Нет данных"}
-        
         return {
-            "total_logins": len(self.logins),
-            "status": "Данные загружены",
-            "sample_logins": self.logins[:5] if len(self.logins) >= 5 else self.logins
+            "total_base_words": len(self.base_words),
+            "status": "Генератор готов к работе",
+            "sample_words": self.base_words[:10]
         }
 
 
 # Функция для быстрого использования
-def generate_login_from_file(json_file_path="logins_100000.json"):
+def generate_login_quick(prefix="", length=8):
     """
     Быстрая функция для генерации одного логина
     
     Args:
-        json_file_path (str): Путь к файлу с логинами
+        prefix (str): Префикс для логина (необязательно)
+        length (int): Длина логина (по умолчанию 8)
         
     Returns:
         str: Сгенерированный логин
     """
-    generator = LoginGenerator(json_file_path)
-    return generator.generate_login()
+    generator = LoginGenerator()
+    return generator.generate_login(prefix, length)
 
 
 # Пример использования
@@ -117,6 +126,12 @@ if __name__ == "__main__":
     print("Примеры сгенерированных логинов:")
     for i in range(10):
         login = generator.generate_login()
+        print(f"{i+1}. {login}")
+    
+    print()
+    print("Генерация логинов с префиксом:")
+    for i in range(5):
+        login = generator.generate_login(prefix="user", length=10)
         print(f"{i+1}. {login}")
     
     print()

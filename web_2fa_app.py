@@ -254,11 +254,24 @@ class Web2FAApp:
     def api_generate_login(self):
         """API для генерации логина"""
         try:
-            login = login_generator.generate_login()
+            # Получаем параметры из запроса
+            prefix = request.args.get('prefix', '')
+            length = int(request.args.get('length', 8))
+            
+            # Валидация длины
+            if length < 3 or length > 50:
+                return jsonify({
+                    'success': False,
+                    'error': 'Длина логина должна быть от 3 до 50 символов'
+                }), 400
+            
+            login = login_generator.generate_login(prefix=prefix, length=length)
             if login:
                 return jsonify({
                     'success': True,
-                    'login': login
+                    'login': login,
+                    'prefix': prefix,
+                    'length': length
                 })
             else:
                 return jsonify({
@@ -266,6 +279,11 @@ class Web2FAApp:
                     'error': 'Не удалось сгенерировать логин'
                 }), 400
                 
+        except ValueError:
+            return jsonify({
+                'success': False,
+                'error': 'Неверный формат длины логина'
+            }), 400
         except Exception as e:
             return jsonify({
                 'success': False,
