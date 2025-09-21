@@ -1232,6 +1232,7 @@
         let sessionId = 'web_' + Date.now();
         let autoRefreshInterval = null;
         let keysAutoRefreshInterval = null;
+        let isFirstLoad = true;
         let currentUser = null;
 
 
@@ -1332,14 +1333,20 @@
 
 
         // Загрузка демонстрации
-        async function loadDemo() {
+        async function loadDemo(showErrorOnEmpty = true) {
             try {
                 const secretKey = document.getElementById('secretKey').value.trim();
 
                 if (!secretKey) {
-                    showError('generateResult', 'Введите секретный ключ');
+                    // Не показываем ошибку при первой загрузке страницы
+                    if (showErrorOnEmpty && !isFirstLoad) {
+                        showError('generateResult', 'Введите секретный ключ');
+                    }
+                    isFirstLoad = false;
                     return;
                 }
+
+                isFirstLoad = false;
 
                 // Обновляем URL с ключом
                 updateUrlWithKey(secretKey);
@@ -2030,7 +2037,7 @@
         function handleUrlParameters() {
             // Обработка hash параметров (#key)
             const hash = window.location.hash.substring(1);
-            if (hash) {
+            if (hash && hash.length > 5) { // Проверяем, что hash достаточно длинный для секретного ключа
                 const keyInput = document.getElementById('secretKey');
                 keyInput.value = hash;
                 // Автоматически генерируем код если есть ключ в URL
@@ -2042,7 +2049,7 @@
             // Обработка query параметров (?key=value)
             const urlParams = new URLSearchParams(window.location.search);
             const keyFromUrl = urlParams.get('key');
-            if (keyFromUrl) {
+            if (keyFromUrl && keyFromUrl.length > 5) { // Проверяем, что ключ достаточно длинный
                 const keyInput = document.getElementById('secretKey');
                 keyInput.value = keyFromUrl;
                 // Автоматически генерируем код
