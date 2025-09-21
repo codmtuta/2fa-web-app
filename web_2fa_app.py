@@ -15,8 +15,18 @@ from flask_cors import CORS
 
 
 from totp_generator import TOTPGenerator, create_new_secret_key
-from secure_storage import SecureStorage
 from login_generator import LoginGenerator
+
+# Безопасный импорт secure_storage
+try:
+    from secure_storage import SecureStorage
+    secure_storage = SecureStorage("secure_2fa_keys.json")
+except ImportError as e:
+    print(f"Warning: secure_storage not available: {e}")
+    secure_storage = None
+except Exception as e:
+    print(f"Warning: secure_storage initialization failed: {e}")
+    secure_storage = None
 
 
 app = Flask(__name__)
@@ -29,9 +39,6 @@ MAX_KEYS_PER_SESSION = 10
 
 # Хранилище сессий (в продакшене использовать Redis или базу данных)
 sessions: Dict[str, List[Dict]] = {}
-
-# Безопасное хранилище
-secure_storage = SecureStorage("secure_2fa_keys.json")
 
 # Генератор логинов
 login_generator = LoginGenerator()
@@ -268,6 +275,9 @@ class Web2FAApp:
     def api_secure_add_key(self):
         """API для безопасного добавления ключа"""
         try:
+            if secure_storage is None:
+                return jsonify({'error': 'Безопасное хранилище недоступно'}), 503
+                
             data = request.get_json()
             secret_key = data.get('secret_key', '').upper().strip()
             name = data.get('name', '')
@@ -299,6 +309,9 @@ class Web2FAApp:
     def api_secure_get_keys(self):
         """API для получения ключей из безопасного хранилища"""
         try:
+            if secure_storage is None:
+                return jsonify({'error': 'Безопасное хранилище недоступно'}), 503
+                
             keys = secure_storage.get_keys()
             
             # Добавляем текущие коды для каждого ключа
@@ -341,6 +354,9 @@ class Web2FAApp:
     def api_secure_remove_key(self):
         """API для удаления ключа из безопасного хранилища"""
         try:
+            if secure_storage is None:
+                return jsonify({'error': 'Безопасное хранилище недоступно'}), 503
+                
             data = request.get_json()
             key_id = data.get('key_id', '')
             
@@ -363,6 +379,9 @@ class Web2FAApp:
     def api_export_keys(self):
         """API для экспорта ключей"""
         try:
+            if secure_storage is None:
+                return jsonify({'error': 'Безопасное хранилище недоступно'}), 503
+                
             export_file = f"2fa_export_{int(time.time())}.json"
             success = secure_storage.export_keys(export_file)
             
@@ -381,6 +400,9 @@ class Web2FAApp:
     def api_import_keys(self):
         """API для импорта ключей"""
         try:
+            if secure_storage is None:
+                return jsonify({'error': 'Безопасное хранилище недоступно'}), 503
+                
             if 'file' not in request.files:
                 return jsonify({'error': 'Файл не загружен'}), 400
             
@@ -410,6 +432,9 @@ class Web2FAApp:
     def api_statistics(self):
         """API для получения статистики"""
         try:
+            if secure_storage is None:
+                return jsonify({'error': 'Безопасное хранилище недоступно'}), 503
+                
             stats = secure_storage.get_statistics()
             return jsonify({
                 'success': True,
